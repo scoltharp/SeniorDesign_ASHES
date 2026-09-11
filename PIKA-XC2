@@ -1,6 +1,8 @@
 #adapted from the "Getting started" code snippet found at https://github.com/basler/pypylon
 
 from pypylon import pylon
+import numpy as np
+import spectral.io.spyfile as spy
 
 # Pika L Parameters, from table on the Camera Setup and Windowing Page
 ROI_WIDTH = 1600
@@ -14,6 +16,9 @@ A = 1.4100000043981709e-05
 B = 0.6551039814949036
 C = 319.2640075683594
 SERIAL_NUMBER = "22658054"
+
+EXPOSURE = 31360 # Microseconds
+GAIN = 12
 
 # Establish traspont layer and get list of available devices
 factory = pylon.TlFactory.GetInstance()
@@ -41,6 +46,12 @@ camera_instance.OffsetX.SetValue(X_OFFSET)
 camera_instance.OffsetY.SetValue(Y_OFFSET)
 camera_instance.BinningVertical.SetValue(Y_BINNING)
 
+camera_instance.ExposureAuto.Value = "Off"
+camera_instance.ExposureTime.Value = EXPOSURE
+
+camera_instance.GainAuto.Value = "Off"
+camera_instance.Gain.Value = GAIN
+
 
 def get_wavelength_for_channel(band_number: int) -> float:
     # The wavelength calibration equation is defined in terms of un-binned and un-windowed sensor coordinates.
@@ -58,8 +69,8 @@ def get_wavelength_for_channel(band_number: int) -> float:
 # print(', '.join(str(round(w, 2)) for w in wavelengths))
 
 
-# Capture 100 frames
-FRAME_COUNT = 100
+# Capture frames
+FRAME_COUNT = 50
 camera_instance.StartGrabbingMax(FRAME_COUNT)
 frame_number = 0
 while camera_instance.IsGrabbing():
@@ -71,12 +82,13 @@ while camera_instance.IsGrabbing():
             # Access the image data for the last frame, as an example
             print("Frame size X (spatial samples): ", grab_result.Width)
             print("Frame size Y (spectral bands): ", grab_result.Height)
-            frame = grab_result.Array
+            frame = grab_result.Array[::-1, :]  # Flip the frame in the spectral dimension for Pika XC2
             
-            # Note: If you're working with the Pika XC2 instead of the Pika L, the frame must be flipped in the spectral dimension:
-            # frame = grab_result.Array[::-1, :]
-            
-            print("Gray value of first pixel: ", frame[0, 0])
 
     grab_result.Release()
+
+# WIP: I currently do not know how the Pika XC2 stores this data, so 
+# the data will be saved as a text file for now. 
+np.savetxt("pika_xc2_test.txt", frame)
+
 camera_instance.Close()
