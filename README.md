@@ -6,11 +6,11 @@ The following assumes you are running these scripts on a Windows, x86 machine. I
 
 This code is built on python, along with some libraries that need to be downloaded. To install python, visit the webpage below and install through the python installer. 
 
-[https://www.python.org/downloads/](https://www.python.org/downloads/)
+[Download python Installation Manager](https://www.python.org/downloads/)
 
 Pypylon is a library created for use specifically with Basler imaging systems. Our imager, the Resonon Pika-XC2, uses a Basler camera. To install pypylon, open your command prompt (press the windows button and type "cmd") and enter the following.
 
-    pip3 install pypylon
+    pip install pypylon
 
 Numpy is a library to enable numerical computing. To install, open your command prompt (press the windows button and type "cmd") and enter the following. 
 
