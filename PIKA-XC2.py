@@ -2,7 +2,6 @@
 
 from pypylon import pylon
 import numpy as np
-import spectral.io.spyfile as spy
 
 # Pika L Parameters, from table on the Camera Setup and Windowing Page
 ROI_WIDTH = 1600
