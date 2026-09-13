@@ -16,6 +16,10 @@ Numpy is a library to enable numerical computing. To install, open your command 
 
     pip install numpy
 
+Spectral is a library for processing hyperspectral data. To install, open your command prompt (press the windows button and type "cmd") and enter the following. 
+
+    pip install Spectral
+
 ## Running Python Scripts
 To run this python script, you can either use a code editor/IDE or run from the command prompt. The following will show you how to use a command prompt. 
 
@@ -25,7 +29,7 @@ Download the python file and open your command prompt (press the windows button 
 
 Once done, simply type the following in the terminal to run. 
 
-    python PIKA-XC2
+    python PIKA-XC2.py
 
 
 ## Liscence
