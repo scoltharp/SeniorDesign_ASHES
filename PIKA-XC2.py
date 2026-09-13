@@ -2,6 +2,7 @@
 
 from pypylon import pylon
 import numpy as np
+from spectral import envi
 
 # Pika L Parameters, from table on the Camera Setup and Windowing Page
 ROI_WIDTH = 1600
@@ -92,34 +93,52 @@ def get_wavelength_for_channel(band_number: int) -> float:
 
 #     grab_result.Release()
 
-# Capture single frame
-camera_instance.StartGrabbingMax(1)
-while camera_instance.IsGrabbing():
-    grab_result = camera_instance.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-    if grab_result.GrabSucceeded():
-        print("Frame size X (spatial samples): ", grab_result.Width)
-        print("Frame size Y (spectral bands): ", grab_result.Height)
-        print("Single frame captured successfully.")
-        single_frame = grab_result.Array[::-1, :]  # Flip the frame in the spectral dimension for Pika XC2
-        np.savetxt("pika_xc2_single.txt", single_frame)
-    else:
-        print("Frame capture failed.")
+while True:
 
-    grab_result.Release()
+    
+    # Set up for capture
+    multiframe_array = []
+    frame_number = 0
 
-# Capture multiple (5) frames
-multiframe_array = []
-FRAME_COUNT = 5
-camera_instance.StartGrabbingMax(FRAME_COUNT)
-while camera_instance.IsGrabbing():
-    grab_result = camera_instance.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-    if grab_result.GrabSucceeded():
-        frame_number += 1
-        print("Multiframe number ", frame_number, "captured successfully.")
-        frame = grab_result.Array[::-1, :]  # Flip the frame in the spectral dimension for Pika XC2
-        multiframe_array.append(frame)
-    grab_result.Release()
+    # Ask user how many frames and to enter when ready
+    FRAME_COUNT = int(input("Enter the number of frames to capture: "))
+    input("Press Enter to start capturing frames...")
 
-np.save("pika_xc2_multiframe.npy", multiframe_array)
+    # * CAMERA MAGIC * #
+    camera_instance.StartGrabbingMax(FRAME_COUNT)
+    while camera_instance.IsGrabbing():
+        grab_result = camera_instance.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+        if grab_result.GrabSucceeded():
+            frame_number += 1
+            frame = grab_result.Array[::-1, :]  # Flip the frame in the spectral dimension for Pika XC2
+            multiframe_array.append(frame)
+        grab_result.Release()
+
+    # Frame array must be transposed for data
+    transposed_data = np.transpose(multiframe_array, (0, 2, 1))  
+
+    # Generate bands array, next time actually generate this to be exact bands
+    wavelengths = np.linspace(385.24, 1003.85, num=462)
+
+    # Variables for metadata
+    lines, samples, bands = transposed_data.shape
+
+    metadata = {
+        'lines': lines,
+        'samples': samples,
+        'bands': bands,
+        'interleave': 'bil',
+        'data type': 1,  # ENVI code, 1 = uint8
+        'wavelength units': 'Nanometers',
+        'wavelength': wavelengths, 
+    }
+
+    # Ask user for output file name and save data
+    name = input("Enter the desired name of the output file (without extension): ") + ".hdr"
+    envi.save_image(name, transposed_data, metadata=metadata, force=True, interleave='bil', ext='bil')
+
+    # Repeat! (or exit)
 
 camera_instance.Close()
+
+
