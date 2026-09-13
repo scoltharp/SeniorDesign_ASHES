@@ -10,15 +10,15 @@ This code is built on python, along with some libraries that need to be download
 
 Pypylon is a library created for use specifically with Basler imaging systems. Our imager, the Resonon Pika-XC2, uses a Basler camera. To install pypylon, open your command prompt (press the windows button and type "cmd") and enter the following.
 
-    pip install pypylon
+    python -m pip install pypylon
 
 Numpy is a library to enable numerical computing. To install, open your command prompt (press the windows button and type "cmd") and enter the following. 
 
-    pip install numpy
+    python -m pip install numpy
 
 Spectral is a library for processing hyperspectral data. To install, open your command prompt (press the windows button and type "cmd") and enter the following. 
 
-    pip install Spectral
+    python -m pip install Spectral
 
 ## Running Python Scripts
 To run this python script, you can either use a code editor/IDE or run from the command prompt. The following will show you how to use a command prompt. 
