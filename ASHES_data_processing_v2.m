@@ -87,7 +87,7 @@ fprintf('\nNumber of selected bands:\n 750: %d\n 770: %d\n 780: %d\n', ...
 fprintf('\n Number of Positive Delta 77 Pixels: %.4f\n', ...
     numPositive);
 
-% ---------- PLOT RESULTS  ------------ %
+% ---------- PLOT POSITIVE DELTA 77 IMAGES  ------------ %
 
 %%%% Plot positive pixles only
 % Positive pixel mask, locations, and values
@@ -120,55 +120,64 @@ figure;
     cb.Label.String = 'Positive pixel value';
     title(ax2, 'Positive pixels colored by value');
 
-    %%%% Display histograms
-% figure; 
-%     subplot(3,1,1);     % plot 750 image
-%     histogram(averageImage50)
-% 
-%     subplot(3,1,2);     % plot 770 image
-%     histogram(averageImage70)
-% 
-%     subplot(3,1,3);     % plot 780 image
-%     histogram(averageImage80)
+% ---------- EVALUATE SMOOTHING  ------------ %
+
+% Choose a pixel by its image coordinates
+lineNumber = 179;       % Image row (1-100)
+sampleNumber = 1025;    % Image column (1-1600)
+
+% Extract the pixel's spectral signal
+originalSpectrum = double(squeeze(fireCube(lineNumber, sampleNumber, :)));
+smoothedSpectrum = double(squeeze(smoothedCube(lineNumber, sampleNumber, :)));
+
+% Plot intensity versus wavelength
+figure;
+    plot(wavelengths, originalSpectrum, 'DisplayName', 'Original Signal');
+    hold on;
+    
+    plot(wavelengths, smoothedSpectrum, 'DisplayName', 'Smoothed Signal', ...
+        'LineWidth', 1.5);
+    
+    xlabel('Wavelength (nm)');
+    ylabel('Pixel Intensity (Digital Numbers)');
+    title(sprintf('Pixel Spectrum: Row %d, Column %d', lineNumber, sampleNumber));
+    
+    legend('Location', 'best');
+    grid on;
+    hold off;
+
+% Choose the target wavelengths
+targetWavelengths = [750, 770, 780];
+nTargets = numel(targetWavelengths);
+actualWavelengths = zeros(nTargets, 1);
+originalValues = zeros(nTargets, 1);
+smoothedValues = zeros(nTargets, 1);
+
+for k = 1:nTargets
+    [~, idx] = min(abs(wavelengths - targetWavelengths(k)));
+
+    actualWavelengths(k) = wavelengths(idx);
+    originalValues(k) = originalSpectrum(idx);
+    smoothedValues(k) = smoothedSpectrum(idx);
+end
+
+delta77_smoothpixle = smoothedValues(2) - ( (1/3)*smoothedValues(1) + (2/3)*smoothedValues(3));
+delta77_originalpixle = originalValues(2) - ( (1/3)*originalValues(1) + (2/3)*originalValues(3));
+
+fprintf('\n Delta 77 smoothed pixle: %.4f\n', delta77_smoothpixle);
+fprintf('\n Delta 77 original pixle: %.4f\n', delta77_originalpixle);
 
 
-%%%% Display average images
-% figure;
-%     subplot(3,1,1);     % plot 750 image
-%     imagesc(averageImage50);
-%     axis image;
-%     colorbar;
+% %  Display results in a table
+% results = table( ...
+%     targetWavelengths(:), actualWavelengths, ...
+%     originalValues, smoothedValues, ...
+%     'VariableNames', {'Target_nm', 'Actual_nm', ...
+%     'Original_DN', 'Smoothed_DN'});
 % 
-%     title(sprintf('Average Image 750 (%.1f–%.1f nm)', ...
-%         min(selectedWavelengths50), max(selectedWavelengths50)));
-% 
-%     xlabel('Spatial Sample');
-%     ylabel('Image Line');
-% 
-%     subplot(3,1,2);     % plot 770 image 
-%     imagesc(averageImage70);
-%     axis image;
-%     colorbar;
-% 
-%     title(sprintf('Average Image 770 (%.1f–%.1f nm)', ...
-%         min(selectedWavelengths70), max(selectedWavelengths70)));
-% 
-%     xlabel('Spatial Sample');
-%     ylabel('Image Line');
-% 
-%     subplot(3,1,3);     % plot 780 image 
-%     imagesc(averageImage80);
-%     axis image;
-%     colorbar;
-% 
-%     title(sprintf('Average Image 780 (%.1f–%.1f nm)', ...
-%         min(selectedWavelengths80), max(selectedWavelengths80)));
-% 
-%     xlabel('Spatial Sample');
-%     ylabel('Image Line');
+% disp(results);
 
-
-% ---------- Using one bandwidth  ------------ %
+% ---------- PLOT ONE BANDWIDTH IMAGE  ------------ %
 
 %%%% Retrieve the image band closest to 770 nm
 % [~, idx770] = min(abs(wavelengths - 770));
